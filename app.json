@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Jarvis",
+    "slug": "jarvis-study",
+    "version": "1.0.0",
+    "scheme": "jarvis",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#1E1B4B",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.jarvis"
+    },
+    "android": {
+      "package": "com.example.jarvis",
+      "permissions": ["READ_CALENDAR", "WRITE_CALENDAR", "POST_NOTIFICATIONS"]
+    },
+    "plugins": [
+      "expo-router",
+      ["expo-calendar", { "calendarPermission": "Jarvis uses your calendar to add your study sessions." }],
+      ["expo-notifications", { "color": "#4F46E5" }],
+      "expo-speech-recognition"
+    ]
+  }
+}
