@@ -1,74 +1,124 @@
-# Jarvis, your voice study partner
+# Jarvis Study
 
-An Expo (React Native) app: a Jarvis-style orb you talk to, a tutor that answers from **your own notes**
-and speaks the answer aloud, a study plan with reminders, and a progress tab.
+Jarvis Study is a mobile study assistant built with React Native and Expo. Add text notes, ask questions about them, and hear responses aloud. The app also includes a study plan, local reminders, calendar events, and a basic progress view.
 
-Indigo and white, with the same HUD orb on every screen.
+> **Project status:** This is an early-stage project, not a production-ready app. Some screens and library modules are prototypes or placeholders. See [Current limitations](#current-limitations) before relying on any feature.
 
-> **Honest status:** this is a starter, written but **not yet run on a device**. Expect to fix a few small
-> things the first time (package versions, a typo). Phase 1 of the roadmap is done; phases 2 to 4 are not.
+## Features
 
-## What works
+- Onboarding for subjects, study days, preferred time, session length, calendar access, and reminders.
+- Home screen with study-plan summary, progress streak, and suggested prompts.
+- Notes can be pasted or imported from `.txt` and `.md` files. Note text is uploaded to Supabase and indexed for semantic search.
+- Tutor answers are generated from retrieved note content and read aloud with the device's text-to-speech engine. Captions are optional.
+- Study-plan, calendar, and progress screens.
+- Optional speech-recognition input on supported native builds.
 
-- Onboarding (7 steps): subjects, study days and time, calendar, reminders. Saves your plan.
-- Home with the animated orb (idle, listening, thinking, speaking), your next session, and quick prompts.
-- Voice screen: type or dictate (use the mic on your phone keyboard), Jarvis answers **out loud**.
-  Captions are off by default; the speech-bubble button shows them. Errors always show as text.
-- Notes: paste text or pick a .txt/.md file. It is split up, embedded, and stored for search.
-- Answers come only from your notes, with the last few turns remembered (so "quiz me" works).
-- Plan: week view of your sessions. Weekly reminders 10 minutes before each one. Sessions added to your calendar.
-- Progress: streak and questions asked per day.
+## Requirements
 
-## What is NOT built yet (next phases)
+- Node.js and npm.
+- A Supabase project.
+- An Anthropic API key for tutor responses.
+- Android Studio for a local Android build, or Xcode on macOS for a local iOS build.
 
-- Built-in speech-to-text (the orb listening to your voice). For now, use your keyboard's dictation.
-  Next step: add `expo-speech-recognition` (needs a development build, not Expo Go).
-- PDF reading and camera scan (OCR), diagrams, flashcards, quizzes with mastery tracking, video explainers,
-  "Hey Jarvis" wake word, interrupting Jarvis by voice.
-- A more natural voice. The phone's built-in voice is used (free, a bit robotic).
+The project currently uses Expo SDK 51. Dependency compatibility and device behavior have not been verified across all platforms.
 
-## Run it
+## Setup
 
-1. Install Node.js 20+ on your computer, then in this folder:
-   ```
-   npm install
-   npx expo install --fix
-   cp .env.example .env
-   ```
-   (`expo install --fix` lines up package versions with your Expo version.)
-2. Create a free project at supabase.com, then fill `.env` with the Project URL and the anon key
-   (Project settings > API).
-3. In Supabase:
-   - Authentication > Providers > turn on **Anonymous sign-ins**.
-   - SQL Editor > paste and run `supabase/schema.sql`.
-4. Deploy the two functions (install the Supabase CLI first):
-   ```
-   supabase login
-   supabase link --project-ref YOUR-PROJECT-REF
-   supabase secrets set ANTHROPIC_API_KEY=your-key
-   supabase functions deploy ask
-   supabase functions deploy ingest
-   ```
-   The model defaults to `claude-haiku-5-5`. Change it with `supabase secrets set JARVIS_MODEL=...`.
-5. Start the app and open it on your phone with the Expo Go app:
-   ```
-   npx expo start
-   ```
+### 1. Install dependencies
 
-## Good to know
+From the project directory:
 
-- Calendar and reminders need a real phone. If reminders do not fire, check `lib/reminders.ts`:
-  newer Expo versions want `type: Notifications.SchedulableTriggerInputTypes.WEEKLY` in the trigger.
-- Each phone gets a private anonymous account. Notes stay on that account only (row-level security).
-  Before publishing to the Play Store, add proper sign-in so people can keep their notes across phones.
-- Free-tier limits: notes are capped at about 60,000 characters each; keep an eye on your AI API usage.
-
-## Folder map
-
+```powershell
+npm ci
 ```
-app/            screens (onboarding, tabs, voice screen)
-components/     Orb (the HUD orb), Screen (shared header)
-lib/            storage, reminders + calendar, speech, API, stats
-supabase/       schema.sql and the two edge functions (ask, ingest)
-theme.ts        indigo and white colors
+
+### 2. Configure Supabase
+
+1. Create a Supabase project.
+2. In the Supabase dashboard, enable anonymous sign-ins under **Authentication → Providers**.
+3. Run [`supabase/schema.sql`](./supabase/schema.sql) in the Supabase SQL Editor.
+4. Copy `.env.example` to `.env` and set your project URL and anon/public key:
+
+   ```dotenv
+   EXPO_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR-ANON-KEY
+   ```
+
+   In PowerShell, copy the example with:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   The anon key is intended for client applications; do not put a Supabase service-role key or other server secret in `EXPO_PUBLIC_*` variables.
+
+### 3. Configure and deploy Supabase Edge Functions
+
+Install the [Supabase CLI](https://supabase.com/docs/guides/cli), then authenticate and link this directory to your project:
+
+```powershell
+supabase login
+supabase link --project-ref YOUR-PROJECT-REF
+supabase secrets set ANTHROPIC_API_KEY=YOUR-ANTHROPIC-API-KEY
+supabase functions deploy ask
+supabase functions deploy ingest
 ```
+
+The `ask` function uses the Anthropic API. Keep the API key in Supabase secrets; never add it to the app or commit it. The function currently defaults to the model configured in its source (`claude-haiku-5-5`); confirm that model is available for your Anthropic account before deploying.
+
+### 4. Build and run the app
+
+Speech recognition uses native code, so use a development build rather than assuming it will work in Expo Go.
+
+For Android:
+
+```powershell
+npx expo run:android
+npx expo start --dev-client
+```
+
+For iOS, use macOS with Xcode:
+
+```sh
+npx expo run:ios
+npx expo start --dev-client
+```
+
+Calendar and notification behavior should be tested on a physical device. Permissions must be granted by the user.
+
+## Development checks
+
+Run the TypeScript check with:
+
+```powershell
+npx tsc --noEmit
+```
+
+There are currently no test, lint, or build scripts defined in `package.json`.
+
+## Current limitations
+
+- Sign-in is anonymous by default. Sign-in helpers exist, but there is no complete account-management flow in the app.
+- Quiz flow, grading, flashcards, lectures, OCR, PDF extraction, and offline support are incomplete or prototype-level; do not assume these are fully usable.
+- The Plan screen's suggested-time display is not currently based on calendar availability.
+- Some Settings actions are not wired up.
+- Calendar and reminder behavior depends on platform permissions and Expo SDK compatibility.
+- The project has not been validated as a complete release build on Android and iOS.
+
+## Project layout
+
+```text
+app/                  Expo Router screens and tabs
+components/           Shared UI components, including the orb
+lib/                  Supabase client, data access, speech, reminders, and helpers
+supabase/schema.sql   Database schema and row-level security policies
+supabase/functions/   Supabase Edge Functions for asking and ingesting notes
+```
+
+## Data and security notes
+
+- The app uses Supabase anonymous authentication and row-level security to scope stored notes to the signed-in user.
+- Note content is sent to the Supabase `ingest` function for embedding and stored in the project's database.
+- Questions and retrieved note excerpts are sent by the `ask` function to Anthropic to generate an answer.
+- Review the Supabase policies and Edge Function behavior before using real or sensitive study material.
+- Do not commit `.env` or publish server-side API keys.
