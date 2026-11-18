@@ -2,7 +2,7 @@
 
 Jarvis Study is a mobile study assistant built with React Native and Expo. Add text notes, ask questions about them, and hear responses aloud. The app also includes a study plan, local reminders, calendar events, and a basic progress view.
 
-> **Project status:** This is an early-stage project, not a production-ready app. Some screens and library modules are prototypes or placeholders. See [Current limitations](#current-limitations) before relying on any feature.
+> **Project status:** This is an early-stage project, not a production-ready app. Some screens and library modules are prototypes. See [Current limitations](#current-limitations) before relying on any feature.
 
 ## Features
 
@@ -94,16 +94,6 @@ Run the TypeScript check with:
 npx tsc --noEmit
 ```
 
-There are currently no test, lint, or build scripts defined in `package.json`.
-
-## Current limitations
-
-- Sign-in is anonymous by default. Sign-in helpers exist, but there is no complete account-management flow in the app.
-- Quiz flow, grading, flashcards, lectures, OCR, PDF extraction, and offline support are incomplete or prototype-level; do not assume these are fully usable.
-- The Plan screen's suggested-time display is not currently based on calendar availability.
-- Some Settings actions are not wired up.
-- Calendar and reminder behavior depends on platform permissions and Expo SDK compatibility.
-- The project has not been validated as a complete release build on Android and iOS.
 
 ## Project layout
 
@@ -115,10 +105,3 @@ supabase/schema.sql   Database schema and row-level security policies
 supabase/functions/   Supabase Edge Functions for asking and ingesting notes
 ```
 
-## Data and security notes
-
-- The app uses Supabase anonymous authentication and row-level security to scope stored notes to the signed-in user.
-- Note content is sent to the Supabase `ingest` function for embedding and stored in the project's database.
-- Questions and retrieved note excerpts are sent by the `ask` function to Anthropic to generate an answer.
-- Review the Supabase policies and Edge Function behavior before using real or sensitive study material.
-- Do not commit `.env` or publish server-side API keys.
